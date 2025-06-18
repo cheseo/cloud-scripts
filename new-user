@@ -3,9 +3,10 @@ usage(){
 	cat >&2
 	exit 1
 } <<EOF
-new-user [useradd-options] username 
+new-user username [publick-key [useradd-options] ]
 
 creates a new user, giving it sudo perimssions.
+the public key is appended to ~/.ssh/authorized_keys
 any options provided are passed to useradd as-is.
 EOF
 
@@ -15,10 +16,12 @@ die(){
 }
 
 group=sudo
-
+key=$2
+uname=$1
+shift 2
 [[ $EUID = 0 ]] || die "must be root"
 
-if [[ -z $1 ]] || [[ $1 = -h ]]; then
+if [[ -z $uname ]] || [[ $uname = -h ]]; then
 	usage
 fi
 
@@ -30,4 +33,14 @@ if [[ $(uname -r) = *amzn* ]]; then
 	fi
 fi
 
-useradd -m -G "$group" "$@"
+useradd -m -G "$group" "$@" "$uname" || die "useradd failed"
+
+if [[ -n $key ]]; then
+
+su "$uname" <<EOF
+mkdir -p ~/.ssh/
+chmod 700 ~/.ssh
+printf '%s\n' "$key" >> ~/.ssh/authorized_keys
+EOF
+
+fi
