@@ -1,0 +1,33 @@
+#!/bin/bash
+usage(){
+	cat >&2
+	exit 1
+} <<EOF
+new-user [useradd-options] username 
+
+creates a new user, giving it sudo perimssions.
+any options provided are passed to useradd as-is.
+EOF
+
+die(){
+	printf '%s\n' "$*" >&2
+	exit 1
+}
+
+group=wheel
+
+[[ $EUID = 0 ]] || die "must be root"
+
+if [[ -z $1 ]] || [[ $1 = -h ]]; then
+	usage
+fi
+
+if [[ $(uname -r) = *amzn* ]]; then
+	# amazon linux, set group sudo for sudo permission
+	if ! grep -rm1 '%sudo' /etc/sudoers{,.d} ; then
+		out=/etc/sudoers.d/$group.conf
+		printf '%%%s ALL=(ALL:ALL) ALL\n' "$group" >> "$out" || die "couldn't add group $group to $out"
+	fi
+fi
+
+useradd -m -G "$group" "$@"
