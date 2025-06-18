@@ -14,7 +14,7 @@ die(){
 	exit 1
 }
 
-group=wheel
+group=sudo
 
 [[ $EUID = 0 ]] || die "must be root"
 
