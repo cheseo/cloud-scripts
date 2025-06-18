@@ -17,7 +17,7 @@ ufw enable
 ufw status
 
 
-if ! grep -q 'PasswordAuthentication no' /etc/sshd/sshd_config{,.d/*}; then
+if ! grep -q 'PasswordAuthentication no' /etc/ssh/sshd_config{,.d/*}; then
 	printf '%s\n' 'WARNING: ssh password authentication is enabled' >&2
 	exit 1
 fi

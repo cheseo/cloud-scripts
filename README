@@ -2,3 +2,10 @@
 These are some of the scripts that i created to learn cloud computing.
 Most of these automate very simple regular tasks.
 
+## new-user username [public-key [useradd-options]]
+This scripts creates a new user named username, and if a public key is given, adds that to ~/.ssh/authorized_keys.
+
+This script shows a password of the newly created user.
+
+## firewall-activate
+This script creates default firewall rules by using ufw.
