@@ -1,0 +1,29 @@
+#!/bin/bash
+die(){
+	printf '%s\n' "$*" >&2
+	exit 1
+}
+
+logconf=/etc/logrotate.d/auth
+if [[ -f "$logconf" ]]; then
+	echo "logrotation of auth already enabled" >&2
+	exit
+fi
+
+setup(){
+	cat > "$logconf" || die "couldn't write to $logconf"
+} <<\EOF
+/var/log/auth.log {
+        missingok
+        compress
+	delaycompress
+	rotate 4
+	daily
+	create
+}
+EOF
+
+setup
+cronout=/etc/crontab
+printf '%s\n' '0 0 * * * root /usr/sbin/logrotate /etc/logrotate.conf' >> "$cronout" || die "couldn't write to $cronout"
+
