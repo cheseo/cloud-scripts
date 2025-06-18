@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# some default firewall settings
+[[ $EUID = 0 ]] || {
+	echo "must be root" >&2
+	exit 1
+}
+
+ufw default deny
+ufw allow 80
+ufw allow 443
+ufw limit ssh
+ufw allow from 160.250.254.179/24
+ufw allow from 2405:acc0:1207:9502:caf5:6464:5edb:4795/64
+
+ufw enable
+ufw status
+
+
+if ! grep -q 'PasswordAuthentication no' /etc/sshd/sshd_config{,.d/*}; then
+	printf '%s\n' 'WARNING: ssh password authentication is enabled' >&2
+	exit 1
+fi
+
