@@ -9,3 +9,6 @@ This script shows a password of the newly created user.
 
 ## firewall-activate
 This script creates default firewall rules by using ufw.
+
+## logrotate-activate
+This script adds a logrotate config to rotate /var/log/auth.log daily, then sets-up system cron to run daily.
