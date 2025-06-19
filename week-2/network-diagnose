@@ -47,7 +47,7 @@ case $cmd in
 	;;
 	scan)
 		if [[ -z $1 ]]; then
-			nmap -sP "$domain"
+			nmap "$domain"
 		else
 			nmap -p "$1" "$domain"
 		fi
@@ -57,7 +57,7 @@ case $cmd in
 		if [[ -n $1 ]]; then
 			count=1
 		fi
-		ping -c "$count" "$domain"
+		ping -c "$count" "$domain" | awk '/statistics ---/,0'
 	;;
 	*)
 		usage
