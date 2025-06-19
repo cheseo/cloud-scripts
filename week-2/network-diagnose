@@ -1,0 +1,65 @@
+#!/bin/bash
+usage(){
+	cat >&2
+	exit 1
+}<<EOF
+network-diagnose { scan | http } domain [port]
+network-diagnose dns domain [type]
+network-diagnose latency domain [count]
+
+scan: accepts a port range of a-b
+http: test if domain accepts http connection on port
+latency: measures ICMP echo latency
+dns: type can be txt, mx, A, AAAA or any other type
+EOF
+
+die(){
+	printf '%s\n' "$*" >&2
+	exit 1
+}
+
+if (( $# < 2 )); then
+	usage
+fi
+
+cmd=$1
+domain=$2
+shift 2
+
+case $cmd in
+	http)
+		port=80
+		if [[ -n $1 ]]; then
+			port=$1
+			shift
+		fi
+		{
+		time -p nc -N "$domain" "$port" </dev/null
+		} 2>&1| awk '/real/{print $2}'
+	;;
+	dns)
+		type=A
+		if [[ -n $1 ]]; then
+			type=$1
+			shift
+		fi
+		dig +short -t "$type" "$@" "$domain"
+	;;
+	scan)
+		if [[ -z $1 ]]; then
+			nmap -sP "$domain"
+		else
+			nmap -p "$1" "$domain"
+		fi
+	;;
+	latency)
+		count=5
+		if [[ -n $1 ]]; then
+			count=1
+		fi
+		ping -c "$count" "$domain"
+	;;
+	*)
+		usage
+esac
+
