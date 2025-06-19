@@ -16,6 +16,9 @@ ufw allow from 2405:acc0:1207:9502:caf5:6464:5edb:4795/64
 ufw enable
 ufw status
 
+myip=$(curl -s ifconfig.me)
+printf 'optional: ufw allow from %s to 0.0.0.0 port 22\n' "$myip"
+printf 'optional: ufw allow 8000:9000/tcp\n'
 
 if ! grep -q 'PasswordAuthentication no' /etc/ssh/sshd_config{,.d/*}; then
 	printf '%s\n' 'WARNING: ssh password authentication is enabled' >&2
