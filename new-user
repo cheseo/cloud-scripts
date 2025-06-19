@@ -19,11 +19,12 @@ group=sudo
 key=$2
 uname=$1
 shift 2
-[[ $EUID = 0 ]] || die "must be root"
 
 if [[ -z $uname ]] || [[ $uname = -h ]]; then
 	usage
 fi
+
+[[ $EUID = 0 ]] || die "must be root"
 
 if [[ $(uname -r) = *amzn* ]]; then
 	# amazon linux, set group sudo for sudo permission
@@ -34,6 +35,9 @@ if [[ $(uname -r) = *amzn* ]]; then
 fi
 
 useradd -m -G "$group" "$@" "$uname" || die "useradd failed"
+passwd=$(LC_ALL=C grep -ao '[[:alnum:]]' /dev/random | paste -sd '' | head -c 8)
+printf '%s\n' "$passwd" "$passwd" | passwd "$uname"
+printf '%s\n' "password: $passwd"
 
 if [[ -n $key ]]; then
 
