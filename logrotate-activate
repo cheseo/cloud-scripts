@@ -12,6 +12,7 @@ fi
 
 setup(){
 	cat > "$logconf" || die "couldn't write to $logconf"
+	printf '%s\n' '/auth.log' 'd' 'w' 'q' | ed -s /etc/logrotate.d/rsyslog
 } <<\EOF
 /var/log/auth.log {
         missingok
