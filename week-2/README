@@ -1,0 +1,11 @@
+# network-diagnose
+This script has a set of sub-commands to diagnose network. They are:
+
+dns:
+	Shows the dns records of domain name. You can chose the type of record to query.
+latency:
+	Uses the ICMP echo requests to find latency to a server.
+http:
+	Finds the time taken by a server to open a http connection. The port can be changed.
+scan:
+	Scans the given list of ports using nmap
