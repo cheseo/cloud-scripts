@@ -20,6 +20,7 @@ fi
 cmd=(aws ec2 run-instances \
 	 --image-id "ami-0f918f7e67a3323f0" \
 	 --subnet-id "subnet-02e7f17ee115e10c6" \
+	 --associate-public-ip-address \
 	 --instance-type "t2.micro" \
 	 --user-data file://cloud-init.sh )
 
