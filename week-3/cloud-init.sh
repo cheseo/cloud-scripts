@@ -34,3 +34,5 @@ html > /var/www/mysite/index.html
 
 config > /etc/nginx/sites-enabled/mysite
 rm /etc/nginx/sites-enabled/default
+
+nginx -s reload
