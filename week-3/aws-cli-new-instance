@@ -1,10 +1,14 @@
 #!/bin/bash
 . ./aws-setup || exit 1
 
-num=$(aws ec2 describe-instances | jq '.Reservations[].Instances | length')
+aws ec2 describe-instances > /tmp/instances || exit 1
+
+num=$(jq '.Reservations[].Instances | length' /tmp/instances)
 
 if [[ $num != '' ]]; then
     printf '%s\n' "There's already an instance running. bailing out."
+    printf "to terminate instance, run:\n"
+    printf "aws ec2 terminate-instances --instance-id %s\n" $(jq '.Reservations[].Instances[].InstanceId' /tmp/instances)
     exit 1
 fi
 
