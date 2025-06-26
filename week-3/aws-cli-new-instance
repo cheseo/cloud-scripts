@@ -14,6 +14,7 @@ if [[ $num != '' ]]; then
 	printf "aws ec2 terminate-instances --instance-id %s\n" $(jq '.Reservations[].Instances[].InstanceId' /tmp/instances)
 	exit 1
     fi
+    set +x
 fi
 
 cmd=(aws ec2 run-instances \
