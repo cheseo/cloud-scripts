@@ -3,7 +3,7 @@ usage(){
 	cat >&2
 	exit 1
 }<<EOF
-network-diagnose { scan | http } domain [port]
+network-diagnose { scan | http } domain [port] [args]
 network-diagnose dns domain [type]
 network-diagnose latency domain [count]
 
@@ -33,9 +33,7 @@ case $cmd in
 			port=$1
 			shift
 		fi
-		{
-		time -p nc -N "$domain" "$port" </dev/null
-		} 2>&1| awk '/real/{print $2}'
+		curl -s --include "$@" -- "$domain" | head -n1
 	;;
 	dns)
 		type=A
@@ -49,7 +47,7 @@ case $cmd in
 		if [[ -z $1 ]]; then
 			nmap "$domain"
 		else
-			nmap -p "$1" "$domain"
+			nmap -p "$1" "$@" -- "$domain"
 		fi
 	;;
 	latency)
