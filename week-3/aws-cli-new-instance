@@ -21,6 +21,7 @@ cmd=(aws ec2 run-instances \
 	 --image-id "ami-0f918f7e67a3323f0" \
 	 --subnet-id "subnet-02e7f17ee115e10c6" \
 	 --security-group-ids "sg-0128d952b93f65e45" \
+	 --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=myinstance}]' \
 	 --associate-public-ip-address \
 	 --key-name ec2-test \
 	 --instance-type "t2.micro" \
