@@ -3,11 +3,9 @@
 config(){
     cat
 } <<EOF
-server{
-	listen 80 default_server;
-	listen [::]:80 default_server;
-	server_name _;
-	root /var/www/mysite;
+ec2.ashwink.com.np {
+	root * /var/www/mysite
+	file_server
 }
 EOF
 
@@ -26,13 +24,11 @@ html(){
 EOF
 
 apt update
-apt install -y nginx
+apt install -y caddy
 
 mkdir /var/www/mysite
 html > /var/www/mysite/index.html
 
 
-config > /etc/nginx/sites-enabled/mysite
-rm /etc/nginx/sites-enabled/default
-
-nginx -s reload
+config > /etc/caddy/Caddyfile
+caddy reload --config /etc/caddy/Caddyfile

@@ -51,4 +51,5 @@ curl	-d "hostname=ec2.ashwink.com.np" \
 	-d "password=$HE_PASSWORD" \
 	-d "myip=$ip" \
 	"https://dyn.dns.he.net/nic/update"
+echo
 
