@@ -1,6 +1,10 @@
 #!/bin/bash
 . ./aws-setup || exit 1
 
+if [[ -z $HE_PASSWORD ]]; then
+	export HE_PASSWORD=$(read -p "HE_PASSWORD: ")
+fi
+
 aws ec2 describe-instances > /tmp/instances || exit 1
 
 num=$(jq '.Reservations[].Instances | length' /tmp/instances)
@@ -30,5 +34,20 @@ cmd=(aws ec2 run-instances \
 printf '%s\n' "${cmd[*]}"
 read -p "run?(y/n)" ans
 if [[ $ans == 'y' ]]; then
-    "${cmd[@]}" | tee /tmp/instances
+	if ! "${cmd[@]}" | tee /tmp/instances; then
+		printf '%s\n' "couldn't create instance"
+		exit 1;
+	fi
 fi
+
+id=$(jq -r '.Instances[0].InstanceId' /tmp/instances)
+ip=$(aws ec2 describe-instances \
+	--instance-ids "$id"\
+	--query 'Reservations[*].Instances[*].PublicIpAddress' \
+	--output text)
+
+curl	-d "hostname=ec2.ashwink.com.np" \
+	-d "password=$HE_PASSWORD" \
+	-d "myip=$ip" \
+	"https://dyn.dns.he.net/nic/update"
+
