@@ -2,7 +2,8 @@
 . ./aws-setup || exit 1
 
 if [[ -z $HE_PASSWORD ]]; then
-	export HE_PASSWORD=$(read -p "HE_PASSWORD: ")
+	read -p "HE_PASSWORD: " he
+	export HE_PASSWORD=$he
 fi
 
 aws ec2 describe-instances > /tmp/instances || exit 1
