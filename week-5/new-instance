@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [[ -z $HE_PASSWORD ]]; then
+        read -p "HE_PASSWORD: " he
+        export HE_PASSWORD=$he
+fi
+
+terraform apply || exit 1
+ip=$(terraform output server_ip | sed 's/"//g')
+set -x
+curl    -d "hostname=ec2.ashwink.com.np" \
+        -d "password=$HE_PASSWORD" \
+        -d "myip=$ip" \
+        "https://dyn.dns.he.net/nic/update"
+echo
