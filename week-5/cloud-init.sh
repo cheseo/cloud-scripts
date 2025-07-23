@@ -15,7 +15,7 @@ echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc]" \
   https://pkg.jenkins.io/debian-stable binary/ >  /etc/apt/sources.list.d/jenkins.list
 
 apt update
-apt install -y jenkins openjdk-21-jre docker.io caddy
+apt install -y jenkins openjdk-21-jre docker.io caddy golang
 
 usermod -a -G docker jenkins
 
