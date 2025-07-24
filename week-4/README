@@ -1,0 +1,15 @@
+Terraform scripts to create instances on public/private subnets and attach a jumphost 
+as well as a NAT gateway.
+
+Uses ~/.ssh/id_rsa.pub as the keypair the instance can login through.
+
+ec2/:
+ - ec2 module for creating ec2 instances. see variables.tf to customize various aspects.
+
+vpc/:
+ - vpc module to create 2 subnets, security groups and routing tables for the subnets.
+
+nat/:
+ - nat submodule. Takes public and private subnet's id, attaches itself to public and adds
+   an entry on the private subnet's routing table to route traffic through itself.
+
