@@ -1,0 +1,17 @@
+*.json:
+ - example IAM policies that can be used on aws.
+
+aws-setup:
+ - A script to export AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_DEFAULT_REGION
+   so i can use it on later scripts.
+
+aws-cli-new-instance:
+ - Create an instance using aws cli, then use he.net 's dns service to update
+   domain mapping. Uses cloud-init.sh to initialize the new instance.
+   Being mindful of aws's free tier resource, it refuses to create new instance
+   if one already exists.
+
+cloud-init.sh
+ - setups caddy and an example site to launch after boot, on proper domain and using 
+   TLS from letsencrypt.
+
