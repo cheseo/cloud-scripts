@@ -1,0 +1,13 @@
+Terraform scripts to setup jenkins on a EC2 machine.
+
+The default ec2 instance is t2.medium, since i found that t2.small is too small
+to run properly.
+
+new-instance:
+ - create a new instance (or update one) and then attach dns record to proper subdomain.
+   Uses he.nets' dns service to update dns.
+
+The example apps that i setup are:
+
+https://github.com/cheseo/python-jenkins-example
+https://github.com/cheseo/node-example
