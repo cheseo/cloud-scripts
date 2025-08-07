@@ -22,7 +22,6 @@ module "server" {
 	name = "jenkins"
 	associate_public_ip_address = true
 	key_name = aws_key_pair.laptop.key_name
-	user_data = data.local_file.ci.content
 }
 
 module "vpc" {
@@ -34,9 +33,6 @@ data "local_file" "ssh" {
 	filename = pathexpand("~/.ssh/id_rsa.pub")
 }
 
-data "local_file" "ci" {
-	filename = "cloud-init.sh"
-}
 
 resource "aws_key_pair" "laptop" {
 	key_name = "laptop2"
