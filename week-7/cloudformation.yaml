@@ -1,0 +1,205 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: CloudFormation Template for WebServer with Security Group and EC2 Instance
+
+Parameters:
+  LatestAmiId:
+    Description: The latest Amazon Linux 2 AMI from the Parameter Store
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/canonical/ubuntu/server/noble/stable/current/amd64/hvm/ebs-gp3/ami-id'
+    # Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+
+  InstanceType:
+    Description: WebServer EC2 instance type
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t3.micro
+      - t2.micro
+    ConstraintDescription: must be a valid EC2 instance type.
+
+  MyIP:
+    Description: Your IP address in CIDR format (e.g. 203.0.113.1/32).
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 0.0.0.0/0
+    AllowedPattern: '^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+
+Resources:
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: "10.0.0.0/16"
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: "Name"
+          Value: "cf-vpc"
+        - Key: "Prod"
+          Value: "false"
+  ipv6CidrBlock:
+    Type: AWS::EC2::VPCCidrBlock
+    Properties:
+      VpcId: !Ref MyVPC
+      AmazonProvidedIpv6CidrBlock: true
+  MyRT:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: "Name"
+          Value: "cf-rt"
+        - Key: "Prod"
+          Value: "true"
+      VpcId: !Ref MyVPC
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: "10.0.1.0/24"
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: "Name"
+          Value: "cf-public-subnet"
+        - Key: "Public"
+          Value: "true"
+      VpcId: !Ref MyVPC
+  GW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: "Name"
+          Value: "cf-gw"
+  GwAssociation:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref GW
+      VpcId: !Ref MyVPC
+  PublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref GW
+      RouteTableId: !Ref MyRT
+  PublicRouteTable:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref MyRT
+      SubnetId: !Ref PublicSubnet
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    DependsOn: ipv6CidrBlock
+    Properties:
+      CidrBlock: "10.0.2.0/24"
+      Ipv6CidrBlock: !Select [1, !Cidr [!Select [0, !GetAtt 'MyVPC.Ipv6CidrBlocks'], 256, 64]]
+      MapPublicIpOnLaunch: false
+      AssignIpv6AddressOnCreation: true
+      Tags:
+        - Key: "Name"
+          Value: "cf-private-subnet"
+        - Key: "Public"
+          Value: "false"
+      VpcId: !Ref MyVPC
+  EGW:
+    Type: AWS::EC2::EgressOnlyInternetGateway
+    Properties:
+      Tags:
+        - Key: "Name"
+          Value: "cf-egw"
+      VpcId: !Ref MyVPC
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationIpv6CidrBlock: "::/0"
+      EgressOnlyInternetGatewayId: !Ref EGW
+      RouteTableId: !Ref PrivateRouteTable
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+        - Key: "Name"
+          Value: "cf-rt-private"
+  PRTAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet
+  WebServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow all access
+      VpcId: !Ref MyVPC
+      SecurityGroupIngress:
+        - IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: !Ref MyIP
+      Tags:
+        - Key: "Name"
+          Value: "cf-public-sec-group"
+  WebServer:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref LatestAmiId
+      InstanceType: !Ref InstanceType
+      KeyName: ec2-test
+      Tags:
+        - Key: "Name"
+          Value: "cf-webserver"
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet:
+            - !Ref WebServerSecurityGroup
+          SubnetId: !Ref PublicSubnet
+      UserData: !Base64 |
+        #!/bin/bash
+        set -x
+        apt update
+        apt install -y caddy golang
+        printf '%s\n' "node.ec2.ashwink.com.np:80, node.ec2.ashwink.com.np:443 {" "  reverse_proxy 127.0.0.1:8080" "}" > /etc/caddy/Caddyfile
+        caddy reload --config /etc/caddy/Caddyfile
+        printf '%s\n' 'cd' 'git clone "https://github.com/cheseo/pg-apps"' 'cd pg-apps' 'go get' 'go build' 'nohup sh -c "PGHOST=10.0.2.6 ./pg-apps"' | sudo -Hu ubuntu bash
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow any access
+      SecurityGroupIngress:
+        - IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: !Ref MyIP
+      Tags:
+        - Key: "Name"
+          Value: "Cf-private-sec-group"
+      VpcId: !Ref MyVPC
+  DBServer:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref LatestAmiId
+      InstanceType: !Ref InstanceType
+      KeyName: ec2-test
+      SubnetId: !Ref PrivateSubnet
+      PrivateIpAddress: 10.0.2.6
+      Ipv6AddressCount: 1
+      SecurityGroupIds:
+        - !Ref DBSecurityGroup
+      Tags:
+        - Key: "Name"
+          Value: "cf-db"
+      UserData: !Base64 |
+        #!/bin/bash
+        apt update
+        apt install -y postgresql
+        echo "listen_addresses = '*'" >> /etc/postgresql/16/main/postgresql.conf
+        echo "host    all     all     all  md5" >> /etc/postgresql/16/main/pg_hba.conf
+        printf '%s\n' "create user ubuntu superuser password 'ubuntu';" | sudo -Hu postgres psql
+        printf '%s\n' "create table users(id serial primary key, name text);" | sudo -Hu ubuntu psql postgres
+        systemctl restart postgresql@16-main.service
+Outputs:
+  WebsiteURL:
+    Value: !Join
+      - ''
+      - - http://
+        - !GetAtt WebServer.PublicDnsName
+    Description: Website URL
