@@ -157,7 +157,7 @@ Resources:
         set -x
         apt update
         apt install -y caddy golang
-        printf '%s\n' "node.ec2.ashwink.com.np:80, node.ec2.ashwink.com.np:443 {" "  reverse_proxy 127.0.0.1:8080" "}" > /etc/caddy/Caddyfile
+        printf '%s\n' "node.ec2.ashwink.com.np {" "  reverse_proxy 127.0.0.1:8080" "}" > /etc/caddy/Caddyfile
         caddy reload --config /etc/caddy/Caddyfile
         printf '%s\n' 'cd' 'git clone "https://github.com/cheseo/pg-apps"' 'cd pg-apps' 'go get' 'go build' 'nohup sh -c "PGHOST=10.0.2.6 ./pg-apps"' | sudo -Hu ubuntu bash
   DBSecurityGroup:
@@ -168,7 +168,8 @@ Resources:
         - IpProtocol: -1
           FromPort: -1
           ToPort: -1
-          CidrIp: !Ref MyIP
+          SourceSecurityGroupId: !Ref WebServerSecurityGroup
+          # CidrIp: !Ref MyIP
       Tags:
         - Key: "Name"
           Value: "Cf-private-sec-group"
