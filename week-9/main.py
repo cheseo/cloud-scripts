@@ -44,6 +44,6 @@ def get_users():
 def add_user():
     name = request.args.get("name") or "blabla"
     cur.execute("INSERT INTO users(name) values(%s);", [name])
-    cur.commit()
+    conn.commit()
     return redirect('/')
 
