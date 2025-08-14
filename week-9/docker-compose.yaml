@@ -1,0 +1,16 @@
+services:
+  frontend:
+    image: flask-fe
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PASSWORD=ubuntu
+      - POSTGRES_PORT=5432
+    depends_on:
+      - postgres
+    ports:
+      - 5000:5000
+  postgres:
+    image: postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=ubuntu
