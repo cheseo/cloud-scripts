@@ -1,0 +1,9 @@
+#!/bin/bash
+set -ex
+docker build . -t flask-fe
+docker tag flask-fe:latest 078805859964.dkr.ecr.ap-south-1.amazonaws.com/flask-fe:latest
+docker push 078805859964.dkr.ecr.ap-south-1.amazonaws.com/flask-fe:latest
+aws ecs register-task-definition --cli-input-json file://ecs.json
+aws ecs update-service --cluster flask-fe-cluster --service flask-service-2 --task-definition arn:aws:ecs:ap-south-1:078805859964:task-definition/flask-task
+
+
