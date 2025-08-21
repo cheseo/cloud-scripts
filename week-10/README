@@ -1,0 +1,4 @@
+The terraform files setup a cloudwatch alarm for instances in a ec2 autoscaling group.
+When it goes above threshold, it increases the no of instances, and when it's back, it decreases the instance count.
+
+It sets up a load balancer and load balancer group to get a stable dns name.
