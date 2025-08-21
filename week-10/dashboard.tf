@@ -3,24 +3,42 @@ resource "aws_cloudwatch_dashboard" "main" {
 
 	dashboard_body = jsonencode({
 		widgets = [
-			{
-				type = "metric"
-				x = 0
-				y = 0
-				width = 12
-				height = 6
-				properties = {
-					metrics = [
-						["AWS/EC2",
-						"CPUUtilization",
-						"AutoScalingGroupName", "scalefifty"]
-					]
-					period = 300
-					start = "Average"
-					region = "ap-south-1"
-					title = "EC2 instance cpu"
+				{
+					type = "metric"
+					x = 0
+					y = 0
+					width = 12
+					height = 6
+					properties = {
+						metrics = [
+							["AWS/EC2",
+							"CPUUtilization",
+							"AutoScalingGroupName", "scalefifty"]
+						]
+						period = 300
+						start = "Average"
+						region = "ap-south-1"
+						title = "EC2 instance cpu"
+					}
+				},
+				{
+					type = "metric"
+					properties = {
+						metrics = [
+							[
+							{
+								expression = "SELECT SUM(NetworkOut) FROM \"AWS/EC2\"",
+								id = "e1"
+							},
+							 ]
+						]
+						period = 300
+						start = "Average"
+						region = "ap-south-1"
+						title = "instance network usage"
+					}
 				}
-			},
-		]
-	})
+			]
+		}
+	)
 }
